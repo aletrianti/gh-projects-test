@@ -1,0 +1,27 @@
+name: Close Issues on Done Status
+
+on:
+    issues:
+        types: [edited]
+    project_card:
+        types: [converted_column, moved_column_in_project]
+
+jobs:
+    close_issue:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check if issue should be closed
+              id: check_if_should_close
+              run: |
+                  if [ "$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.inertia-preview+json" ${{ github.event.project_card.url }} | jq -r '.column_name')" = "Done" ]; then
+                    echo "::set-output name=close_issue::true"
+                  else
+                    echo "::set-output name=close_issue::false"
+                  fi
+            - name: Close Issue
+              uses: peter-evans/close-issue@v1.1.0
+              with:
+                  repo-token: "${{ secrets.GITHUB_TOKEN }}"
+                  issue-number: "${{ github.event.issue.number }}"
+                  close-message: "Closing issue because its status has been set to done"
+              if: steps.check_if_should_close.outputs.close_issue == 'true'

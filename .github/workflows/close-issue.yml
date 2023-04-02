@@ -4,7 +4,7 @@ on:
     issues:
         types: [edited]
     project_card:
-        types: [moved]
+        types: [converted_column, moved_column_in_project]
 
 jobs:
     close_issue:
@@ -13,7 +13,7 @@ jobs:
             - name: Check if issue should be closed
               id: check_if_should_close
               run: |
-                  if contains("done", "${{ github.event.project_card.url }}" | jq -r '.project_column.name'); then
+                  if [[ $(curl -s -H "Authorization: Bearer ${{ secrets.TOKEN }}" -H "Accept: application/vnd.github.inertia-preview+json" ${{ github.event.project_card.url }} | jq -r '.project_column.name') == *"done"* ]]; then
                     echo "::set-output name=close_issue::true"
                   else
                     echo "::set-output name=close_issue::false"

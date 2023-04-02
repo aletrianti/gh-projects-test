@@ -13,15 +13,15 @@ jobs:
             - name: Check if issue should be closed
               id: check_if_should_close
               run: |
-                  if [ "$(curl -s -H "Authorization: Bearer ${{ secrets.TOKEN }}" -H "Accept: application/vnd.github.inertia-preview+json" ${{ github.event.project_card.url }} | jq -r '.column_name')" = "Done" ]; then
+                  if contains("done", "${{ github.event.project_card.url }}" | jq -r '.project_column.name'); then
                     echo "::set-output name=close_issue::true"
                   else
                     echo "::set-output name=close_issue::false"
                   fi
-            - name: Close Issue
+            - if: steps.check_if_should_close.outputs.close_issue == 'true'
+              name: Close Issue
               uses: peter-evans/close-issue@v2.2.0
               with:
                   repo-token: "${{ secrets.TOKEN }}"
                   issue-number: "${{ github.event.issue.number }}"
-                  close-message: "Closing issue because its status has been set to done"
-              if: steps.check_if_should_close.outputs.close_issue == 'true'
+                  comment: "Closing issue because its status label includes the string 'done'"

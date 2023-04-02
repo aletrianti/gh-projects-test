@@ -1,27 +1,20 @@
 name: Close Issues on Done Status
 
 on:
-    issues:
-        types: [edited]
     project_card:
-        types: [converted_column, moved_column_in_project]
+        types: [moved]
 
 jobs:
-    close_issue:
+    close-issues:
         runs-on: ubuntu-latest
         steps:
-            - name: Check if issue should be closed
-              id: check_if_should_close
-              run: |
-                  if contains("done", "${{ github.event.project_card.url }}" | jq -r '.project_column.name'); then
-                    echo "::set-output name=close_issue::true"
-                  else
-                    echo "::set-output name=close_issue::false"
-                  fi
-            - if: steps.check_if_should_close.outputs.close_issue == 'true'
-              name: Close Issue
-              uses: peter-evans/close-issue@v2.2.0
+            - name: Close issues
+              uses: peter-evans/close-issue@v1
               with:
-                  repo-token: "${{ secrets.TOKEN }}"
-                  issue-number: "${{ github.event.issue.number }}"
-                  comment: "Closing issue because its status label includes the string 'done'"
+                  repo-token: ${{ secrets.GITHUB_TOKEN }}
+                  status: done
+                  close-comment: true
+                  close-locked: true
+                  close-title: "Issue closed automatically"
+                  close-labels: "auto-closed"
+                  move-project-to-column: "Done"

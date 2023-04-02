@@ -4,7 +4,7 @@ on:
     issues:
         types: [edited]
     project_card:
-        types: [converted_column, moved_column_in_project]
+        types: [moved]
 
 jobs:
     close_issue:
